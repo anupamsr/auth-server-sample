@@ -10,7 +10,7 @@ with open("public.pem", "rb") as f:
 def verify_access_token(access_token):
     try:
         decoded_token = jwt.decode(
-            access_token.encode(), public_key, issuer=ISSUER, algorithm="RS256"
+            access_token.encode(), public_key, issuer=ISSUER, algorithms=["RS256"]
         )
     except (
         jwt.exceptions.InvalidTokenError,
