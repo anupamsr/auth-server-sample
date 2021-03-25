@@ -33,6 +33,8 @@ def authenticate_user_credentials(username, password):
                     (username,),
                 )
                 row = cursor.fetchone()
+                if not row:
+                    return False
                 salt = bytes(row[0])
                 hashed_key = bytes(row[1])
                 from cryptography.hazmat.primitives.kdf import scrypt
@@ -53,9 +55,11 @@ def authenticate_client(client_id, client_secret):
 
 
 def generate_access_token():
+    current_time = time.time()
     payload = {
         "iss": ISSUER,
-        "exp": time.time() + LIFE_SPAN,
+        "ist": current_time,
+        "exp": current_time + LIFE_SPAN,
     }
 
     access_token = jwt.encode(payload, private_key, algorithm="RS256")

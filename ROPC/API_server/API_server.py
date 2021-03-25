@@ -15,12 +15,11 @@ def before_request():
     if "Bearer" not in auth_header:
         return json.dumps({"error": "Access token does not exist."}), 400
 
-    access_token = auth_header[7:]
-
-    if access_token and verify_access_token(access_token):
-        pass
-    else:
-        return json.dumps({"error": "Access token is invalid."}), 400
+    try:
+        access_token = auth_header.split(" ")[1]
+        verify_access_token(access_token)
+    except Exception as e:
+        return json.dumps({"error": str(e)}), 400
 
 
 @app.route("/users", methods=["GET"])

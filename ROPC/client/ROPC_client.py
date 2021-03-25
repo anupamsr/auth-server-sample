@@ -13,6 +13,8 @@ CLIENT_SECRET = "sample-client-secret"
 
 app = Flask(__name__)
 
+blacklisted_jwt = dict()
+
 
 @app.before_request
 def before_request():
@@ -34,12 +36,7 @@ def main():
     )
 
     if r.status_code != 200:
-        return (
-            json.dumps(
-                {"error": "The resource server returns an error: \n{}".format(r.text)}
-            ),
-            500,
-        )
+        return redirect(url_for("login"))
 
     contents = json.loads(r.text)
     users = contents.get("results")
@@ -50,6 +47,14 @@ def main():
 def login():
     # Presents the login page
     return render_template("ROPC_login.html")
+
+
+@app.route("/logout", methods=["POST"])
+def logout():
+    # Presents the login page
+    response = redirect("/")
+    response.delete_cookie("access_token")
+    return response
 
 
 @app.route("/request_token", methods=["POST"])
@@ -70,13 +75,7 @@ def request_token():
 
     if r.status_code != 200:
         return (
-            json.dumps(
-                {
-                    "error": "The authorization server returns an error: \n{}".format(
-                        r.text
-                    )
-                }
-            ),
+            r.text,
             500,
         )
 
@@ -85,8 +84,9 @@ def request_token():
 
     # Writes access token to the cookie
     response = make_response(redirect(url_for("main")))
-    response.set_cookie("access_token", access_token)
-
+    response.set_cookie(
+        "access_token", access_token, secure=True, httponly=True, samesite="Strict"
+    )
     return response
 
 

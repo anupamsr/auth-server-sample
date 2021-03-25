@@ -1,4 +1,3 @@
-import cryptography
 import jwt
 
 ISSUER = "sample-auth-server"
@@ -9,15 +8,14 @@ with open("public.pem", "rb") as f:
 
 def verify_access_token(access_token):
     try:
-        decoded_token = jwt.decode(
+        jwt.decode(
             access_token.encode(), public_key, issuer=ISSUER, algorithms=["RS256"]
         )
-    except (
-        jwt.exceptions.InvalidTokenError,
-        jwt.exceptions.InvalidSignatureError,
-        jwt.exceptions.InvalidIssuerError,
-        jwt.exceptions.ExpiredSignatureError,
-    ):
-        return False
-
-    return True
+    except jwt.exceptions.InvalidIssuerError:
+        raise Exception("Access token has invalid issuer.")
+    except jwt.exceptions.ExpiredSignatureError:
+        raise Exception("Access token has expired signature.")
+    except jwt.exceptions.InvalidTokenError:
+        raise Exception("Access token is invalid.")
+    except jwt.exceptions.InvalidSignatureError:
+        raise Exception("Access token has invalid signature.")
